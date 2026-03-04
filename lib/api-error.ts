@@ -5,13 +5,13 @@ export function handleApiError(error: unknown) {
 
     if (error instanceof Error) {
         return NextResponse.json(
-            { error: error.message },
+            { success: false, error: error.message },
             { status: 500 }
         );
     }
 
     return NextResponse.json(
-        { error: 'An unexpected internal error occurred' },
+        { success: false, error: 'An unexpected internal error occurred' },
         { status: 500 }
     );
 }

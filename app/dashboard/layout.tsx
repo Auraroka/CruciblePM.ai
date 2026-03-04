@@ -1,4 +1,4 @@
-import Sidebar from '@/components/dashboard/Sidebar';
+import SidebarWrapper from '@/components/dashboard/SidebarWrapper';
 import Header from '@/components/dashboard/Header';
 
 export default function AppLayout({
@@ -8,7 +8,7 @@ export default function AppLayout({
 }) {
     return (
         <div className="flex h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden font-sans">
-            <Sidebar />
+            <SidebarWrapper />
             <div className="flex flex-col flex-1 w-full min-w-0">
                 <Header />
                 <main className="flex-1 overflow-auto">

@@ -2,19 +2,19 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, FolderGit2, Calendar, Settings, PieChart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, FolderGit2, Calendar, Settings, PieChart, ChevronLeft, ChevronRight, Database } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils'; // Assuming we have or will create this soon
 
-export default function Sidebar() {
+export default function Sidebar({ projects }: { projects: any[] }) {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const pathname = usePathname();
 
-    const navItems = [
-        { label: 'Dashboard', href: '/dashboard', icon: Home },
-        { label: 'Website Launch', href: '/project/demo', icon: FolderGit2 },
-        { label: 'Marketing Campaign', href: '/project/demo-2', icon: PieChart },
-    ];
+    const navItems = projects.map((p) => ({
+        label: p.name,
+        href: `/project/${p.id}`,
+        icon: FolderGit2,
+    }));
 
     return (
         <aside
@@ -62,7 +62,7 @@ export default function Sidebar() {
                         Active Projects
                     </div>
 
-                    {navItems.slice(1).map((item) => {
+                    {navItems.map((item) => {
                         const isActive = pathname.startsWith(item.href);
                         const Icon = item.icon;
 
@@ -93,6 +93,10 @@ export default function Sidebar() {
 
             <div className="p-4 mt-auto">
                 <nav className="space-y-1">
+                    <Link href="/database" className="flex items-center justify-center lg:justify-start gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-500 hover:bg-white/[0.04] hover:text-slate-200 group transition-all">
+                        <Database className="w-[18px] h-[18px] shrink-0" />
+                        {!isCollapsed && <span>Database View</span>}
+                    </Link>
                     <Link href="/settings" className="flex items-center justify-center lg:justify-start gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-500 hover:bg-white/[0.04] hover:text-slate-200 group transition-all">
                         <Settings className="w-[18px] h-[18px] shrink-0" />
                         {!isCollapsed && <span>Settings</span>}
