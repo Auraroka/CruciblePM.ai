@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tasks     Task[]   @relation("UserTasks")
+}
+
+model Project {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  tasks       Task[]
+  milestones  Milestone[]
+}
+
+model Task {
+  id                  String       @id @default(cuid())
+  project             Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId           String
+  
+  title               String
+  description         String?
+  status              String       @default("pending") // pending, in progress, completed, blocked
+  
+  assignedTo          User?        @relation("UserTasks", fields: [assignedToId], references: [id])
+  assignedToId        String?
+  
+  deadline            DateTime?
+  durationDays        Int?         @default(1)
+  
+  // React flow positioning state (optional, can be stored here for persistence)
+  positionX           Float?       @default(0)
+  positionY           Float?       @default(0)
+
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  // Dependencies where this task depends on other tasks
+  dependencies        Dependency[] @relation("TaskDependencies")
+  // Dependencies where other tasks depend on this task
+  dependentOn         Dependency[] @relation("BlockingTasks")
+}
+
+model Dependency {
+  id               String @id @default(cuid())
+  
+  // The task that is waiting / blocked
+  task             Task   @relation("TaskDependencies", fields: [taskId], references: [id], onDelete: Cascade)
+  taskId           String
+  
+  // The task that needs to be completed first
+  dependsOnTask    Task   @relation("BlockingTasks", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+  dependsOnTaskId  String
+
+  @@unique([taskId, dependsOnTaskId])
+}
+
+model Milestone {
+  id          String   @id @default(cuid())
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+  name        String
+  deadline    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
