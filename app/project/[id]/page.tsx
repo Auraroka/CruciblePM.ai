@@ -36,9 +36,27 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
             </div>
 
             <div className="flex-1 flex overflow-hidden">
-                <ProjectMap projectId={params.id} onNodeClick={(taskData) => setSelectedTask(taskData)} />
+                <ProjectMap
+                    projectId={params.id}
+                    onNodeClick={(taskData) => setSelectedTask(taskData)}
+                />
                 {selectedTask && (
-                    <TaskPanel task={selectedTask} onClose={() => setSelectedTask(null)} />
+                    <TaskPanel
+                        task={selectedTask}
+                        onClose={() => setSelectedTask(null)}
+                        onSave={(updatedTask) => {
+                            // In a real app, you'd save to DB here. For now, reflect back to map
+                            // We need to trigger a map update. We can pass a prop or use a ref. 
+                            // Since we already lifted selectedTask state, let's just update it and
+                            // map handles it via event bus or lifted state. 
+                            // *Given the current architecture*, the nodes live in `ProjectMap`. 
+                            // Let's pass the updated data to ProjectMap via an event or prop.
+
+                            // Simplest approach: trigger a custom event that ProjectMap listens to
+                            const event = new CustomEvent('task-updated', { detail: updatedTask });
+                            window.dispatchEvent(event);
+                        }}
+                    />
                 )}
             </div>
         </div>

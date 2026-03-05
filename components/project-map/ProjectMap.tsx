@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import ReactFlow, {
     Controls,
     Background,
@@ -61,6 +61,27 @@ const initialEdges: Edge[] = [
 export default function ProjectMap({ projectId, onNodeClick }: { projectId: string; onNodeClick: (nodeInfo: any) => void }) {
     const [nodes, setNodes] = useState<Node[]>(initialNodes);
     const [edges, setEdges] = useState<Edge[]>(initialEdges);
+    const [selectedTask, setSelectedTask] = useState<any | null>(null);
+
+    // Listen for updates from TaskPanel
+    useEffect(() => {
+        const handleTaskUpdate = (e: CustomEvent) => {
+            const updatedData = e.detail;
+            setNodes((nds) =>
+                nds.map((node) => {
+                    if (node.id === updatedData.id ||
+                        // Fallback matching if node id wasn't passed perfectly
+                        (node.data.title === updatedData.title && node.data.assignee === updatedData.assignee && !updatedData.id)) {
+                        return { ...node, data: updatedData };
+                    }
+                    return node;
+                })
+            );
+        };
+
+        window.addEventListener('task-updated' as any, handleTaskUpdate);
+        return () => window.removeEventListener('task-updated' as any, handleTaskUpdate);
+    }, []);
 
     const onNodesChange = useCallback(
         (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -77,35 +98,16 @@ export default function ProjectMap({ projectId, onNodeClick }: { projectId: stri
         []
     );
 
-    const onEdgeMouseEnter = useCallback(
-        (_: React.MouseEvent, edge: Edge) => {
-            setEdges((eds) =>
-                eds.map((e) => {
-                    if (e.id === edge.id) {
-                        e.style = { ...e.style, stroke: '#6366f1', strokeWidth: 3, opacity: 1 };
-                        e.animated = true;
-                    } else {
-                        e.style = { ...e.style, opacity: 0.2 };
-                    }
-                    return e;
-                })
-            );
-        },
-        [setEdges]
-    );
-
-    const onEdgeMouseLeave = useCallback(
-        () => {
-            setEdges((eds) =>
-                eds.map((e) => {
-                    e.style = { ...e.style, stroke: '#94a3b8', strokeWidth: 1.5, opacity: 1 };
-                    e.animated = false;
-                    return e;
-                })
-            );
-        },
-        [setEdges]
-    );
+    const handleAddTask = useCallback(() => {
+        const newNodeId = `task-${Date.now()}`;
+        const newNode: Node = {
+            id: newNodeId,
+            type: 'task',
+            position: { x: 200 + Math.random() * 100, y: 200 + Math.random() * 100 },
+            data: { title: 'New Task', status: 'pending', assignee: 'Unassigned' },
+        };
+        setNodes((nds) => [...nds, newNode]);
+    }, []);
 
     return (
         <div className="flex-1 w-full h-full relative" style={{ minHeight: "calc(100vh - 56px)" }}>
@@ -115,9 +117,10 @@ export default function ProjectMap({ projectId, onNodeClick }: { projectId: stri
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
-                onNodeClick={(_, node) => onNodeClick(node.data)}
-                onEdgeMouseEnter={onEdgeMouseEnter}
-                onEdgeMouseLeave={onEdgeMouseLeave}
+                onNodeClick={(_, node) => {
+                    setSelectedTask(node.data);
+                    onNodeClick(node.data);
+                }}
                 nodeTypes={nodeTypes}
                 fitView
                 className="bg-slate-50 dark:bg-[#0f1115] font-sans"
@@ -127,7 +130,10 @@ export default function ProjectMap({ projectId, onNodeClick }: { projectId: stri
 
                 <Panel position="top-left" className="m-4">
                     <div className="bg-white dark:bg-slate-900 p-2 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 flex gap-2">
-                        <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">
+                        <button
+                            onClick={handleAddTask}
+                            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                        >
                             <Plus className="w-4 h-4" /> Add Task
                         </button>
                     </div>
@@ -144,7 +150,10 @@ export default function ProjectMap({ projectId, onNodeClick }: { projectId: stri
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
                             Your project map is empty. Start visualizing your workflow by adding the first structural task node.
                         </p>
-                        <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg shadow-lg shadow-indigo-500/20 active:scale-95 transition-all outline-none">
+                        <button
+                            onClick={handleAddTask}
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg shadow-lg shadow-indigo-500/20 active:scale-95 transition-all outline-none"
+                        >
                             Add First Task
                         </button>
                     </div>

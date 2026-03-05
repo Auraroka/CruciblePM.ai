@@ -43,4 +43,13 @@ export class ProjectService {
             data
         });
     }
+
+    /**
+     * Delete a project
+     */
+    static async deleteProject(id: string) {
+        return db.project.delete({
+            where: { id }
+        });
+    }
 }

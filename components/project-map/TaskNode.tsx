@@ -73,7 +73,15 @@ function TaskNode({ data, selected }: any) {
                             </div>
 
                             {data.deadline && (
-                                <div className="text-[10px] font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-white/[0.04] px-2 py-1 rounded">
+                                <div className={cn(
+                                    "text-[10px] font-medium px-2 py-1 rounded flex items-center gap-1",
+                                    data.originalDeadline && new Date(data.deadline) > new Date(data.originalDeadline)
+                                        ? "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20"
+                                        : "text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-white/[0.04]"
+                                )}>
+                                    {data.originalDeadline && new Date(data.deadline) > new Date(data.originalDeadline) && (
+                                        <AlertCircle className="w-3 h-3" />
+                                    )}
                                     {new Date(data.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                 </div>
                             )}
