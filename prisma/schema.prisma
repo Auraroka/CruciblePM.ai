@@ -40,6 +40,8 @@ model Task {
   assignedToId        String?
   
   deadline            DateTime?
+  originalDeadline    DateTime?
+  startDate           DateTime?
   durationDays        Int?         @default(1)
   
   // React flow positioning state (optional, can be stored here for persistence)

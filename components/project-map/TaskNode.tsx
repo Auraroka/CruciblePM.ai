@@ -20,10 +20,16 @@ function TaskNode({ data, selected }: any) {
 
     const status = data.status || 'pending';
 
+    const handleNodeClick = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Try to prevent ReactFlow from eating it
+        const event = new CustomEvent('force-node-click', { detail: data });
+        window.dispatchEvent(event);
+    };
+
     return (
-        <div className="relative group">
+        <div className="relative group cursor-pointer z-50" onClick={handleNodeClick}>
             {/* Details tooltip on Hover */}
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg shadow-xl opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50 duration-200">
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg shadow-xl opacity-0 translate-y-2 pointer-events-none peer-hover:opacity-100 peer-hover:translate-y-0 transition-all z-50 duration-200">
                 <div className="font-semibold mb-1 text-sm">{data.title}</div>
                 <div className="text-slate-300 line-clamp-2 leading-relaxed">{data.description || "No description provided."}</div>
                 <div className="flex justify-between items-center mt-3 pt-2 border-t border-slate-700">
@@ -35,7 +41,7 @@ function TaskNode({ data, selected }: any) {
             </div>
 
             <div className={cn(
-                "px-4 py-3 shadow-sm rounded-xl bg-white dark:bg-[#111318] border transition-all duration-300 min-w-[220px] max-w-[260px] group-hover:shadow-lg group-hover:-translate-y-1 relative overflow-hidden",
+                "peer px-4 py-3 shadow-sm rounded-xl bg-white dark:bg-[#111318] border transition-all duration-300 min-w-[220px] max-w-[260px] hover:shadow-lg hover:-translate-y-1 relative overflow-hidden",
                 selected
                     ? "border-indigo-500 shadow-indigo-500/20 ring-1 ring-indigo-500 ring-offset-2 dark:ring-offset-slate-950"
                     : "border-slate-200 dark:border-white/[0.08] hover:border-indigo-400/50"

@@ -7,7 +7,13 @@ export const dynamic = 'force-dynamic';
 
 async function getDashboardData() {
     try {
-        const projects = await ProjectService.getProjects({ includeTasksCount: true });
+        const rawProjects = await ProjectService.getProjects({ includeTasksCount: true, take: 10 });
+
+        // Format dates on the server to prevent hydration mismatches and save client CPU cycles
+        const projects = rawProjects.map(p => ({
+            ...p,
+            formattedUpdatedAt: new Date(p.updatedAt).toLocaleDateString()
+        }));
 
         const taskCounts = {
             completed: await TaskService.countTasksByStatus('completed'),

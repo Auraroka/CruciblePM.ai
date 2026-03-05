@@ -19,49 +19,34 @@ import 'reactflow/dist/style.css';
 import TaskNode from './TaskNode';
 import { Plus } from 'lucide-react';
 
-const nodeTypes = {
-    task: TaskNode,
-};
-
-// Initial dummy data to display the map
-const initialNodes: Node[] = [
-    {
-        id: '1',
-        type: 'task',
-        position: { x: 50, y: 150 },
-        data: { title: 'Design Database Schema', status: 'completed', assignee: 'SS' },
-    },
-    {
-        id: '2',
-        type: 'task',
-        position: { x: 350, y: 50 },
-        data: { title: 'Setup Authentication API', status: 'in progress', assignee: 'JD' },
-    },
-    {
-        id: '3',
-        type: 'task',
-        position: { x: 350, y: 250 },
-        data: { title: 'Create Basic UI Components', status: 'pending', assignee: 'AK' },
-    },
-    {
-        id: '4',
-        type: 'task',
-        position: { x: 650, y: 150 },
-        data: { title: 'Integrate React Flow', status: 'blocked', assignee: 'SS' },
-    },
-];
-
-const initialEdges: Edge[] = [
-    { id: 'e1-2', source: '1', target: '2', type: 'smoothstep', animated: true },
-    { id: 'e1-3', source: '1', target: '3', type: 'smoothstep' },
-    { id: 'e2-4', source: '2', target: '4', type: 'smoothstep' },
-    { id: 'e3-4', source: '3', target: '4', type: 'smoothstep' },
-];
-
-export default function ProjectMap({ projectId, onNodeClick }: { projectId: string; onNodeClick: (nodeInfo: any) => void }) {
-    const [nodes, setNodes] = useState<Node[]>(initialNodes);
-    const [edges, setEdges] = useState<Edge[]>(initialEdges);
+export default function ProjectMap({ projectId, initialTasks, onNodeClick }: { projectId: string; initialTasks: any[]; onNodeClick: (nodeInfo: any) => void }) {
+    const [nodes, setNodes] = useState<Node[]>([]);
+    const [edges, setEdges] = useState<Edge[]>([]);
     const [selectedTask, setSelectedTask] = useState<any | null>(null);
+
+    // Initialize nodes and edges from database tasks
+    useEffect(() => {
+        const newNodes: Node[] = initialTasks.map((task: any) => ({
+            id: task.id,
+            type: 'task',
+            position: { x: task.positionX || Math.random() * 200, y: task.positionY || Math.random() * 200 },
+            data: task,
+        }));
+
+        // Generate edges based on dependencies if populated
+        const newEdges: Edge[] = initialTasks.flatMap((task: any) =>
+            (task.dependencies || []).map((dep: any) => ({
+                id: `e${dep.id}-${task.id}`,
+                source: dep.id,
+                target: task.id,
+                type: 'smoothstep',
+                animated: true
+            }))
+        );
+
+        setNodes(newNodes);
+        setEdges(newEdges);
+    }, [initialTasks]);
 
     // Listen for updates from TaskPanel
     useEffect(() => {
@@ -98,15 +83,47 @@ export default function ProjectMap({ projectId, onNodeClick }: { projectId: stri
         []
     );
 
-    const handleAddTask = useCallback(() => {
-        const newNodeId = `task-${Date.now()}`;
-        const newNode: Node = {
-            id: newNodeId,
-            type: 'task',
-            position: { x: 200 + Math.random() * 100, y: 200 + Math.random() * 100 },
-            data: { title: 'New Task', status: 'pending', assignee: 'Unassigned' },
-        };
-        setNodes((nds) => [...nds, newNode]);
+    const handleAddTask = useCallback(async () => {
+        try {
+            const res = await fetch(`/api/projects/${projectId}/tasks`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: 'New Map Task',
+                    status: 'pending',
+                    positionX: 200 + Math.random() * 100,
+                    positionY: 200 + Math.random() * 100,
+                })
+            });
+            const { data } = await res.json();
+            if (data) {
+                const newNode: Node = {
+                    id: data.id,
+                    type: 'task',
+                    position: { x: data.positionX, y: data.positionY },
+                    data: data,
+                };
+                setNodes((nds) => [...nds, newNode]);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }, [projectId]);
+
+    const handleNodeDragStop = useCallback(async (event: any, node: Node) => {
+        // Save the new position to the database
+        try {
+            await fetch(`/api/tasks/${node.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    positionX: node.position.x,
+                    positionY: node.position.y
+                })
+            });
+        } catch (e) {
+            console.error('Failed to save node position', e);
+        }
     }, []);
 
     return (
@@ -117,11 +134,12 @@ export default function ProjectMap({ projectId, onNodeClick }: { projectId: stri
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                onNodeDragStop={handleNodeDragStop}
                 onNodeClick={(_, node) => {
                     setSelectedTask(node.data);
                     onNodeClick(node.data);
                 }}
-                nodeTypes={nodeTypes}
+                nodeTypes={{ task: TaskNode }}
                 fitView
                 className="bg-slate-50 dark:bg-[#0f1115] font-sans"
             >

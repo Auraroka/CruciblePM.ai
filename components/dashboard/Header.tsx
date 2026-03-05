@@ -1,4 +1,5 @@
 import { Bell, Search, User } from 'lucide-react';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function Header() {
     return (
@@ -15,6 +16,7 @@ export default function Header() {
             </div>
 
             <div className="flex items-center gap-4">
+                <ThemeToggle />
                 <button className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 relative">
                     <Bell className="w-5 h-5" />
                     <span className="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full border border-white dark:border-slate-900"></span>

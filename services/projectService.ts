@@ -5,9 +5,10 @@ export class ProjectService {
     /**
      * Fetch all projects with optional relations included
      */
-    static async getProjects(options?: { includeTasksCount?: boolean }) {
+    static async getProjects(options?: { includeTasksCount?: boolean; take?: number }) {
         return db.project.findMany({
             orderBy: { updatedAt: 'desc' },
+            take: options?.take || 20, // Limit by default to prevent N+1 fetching the whole DB
             include: {
                 ...(options?.includeTasksCount && {
                     _count: { select: { tasks: true } }

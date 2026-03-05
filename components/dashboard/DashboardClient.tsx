@@ -7,11 +7,6 @@ import NewProjectModal from '@/components/dashboard/NewProjectModal';
 
 export default function DashboardClient({ projects, taskCounts }: { projects: any[]; taskCounts: any }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
 
     return (
         <div className="p-8 lg:p-12 max-w-[1400px] mx-auto space-y-10 min-h-full bg-slate-50/50 dark:bg-slate-950">
@@ -92,7 +87,7 @@ export default function DashboardClient({ projects, taskCounts }: { projects: an
                                                 <h3 className="font-semibold text-slate-900 dark:text-white text-lg tracking-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                                     {project.name}
                                                 </h3>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Updated {mounted ? new Date(project.updatedAt).toLocaleDateString() : ''}</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Updated {project.formattedUpdatedAt}</p>
                                             </div>
                                         </div>
 
