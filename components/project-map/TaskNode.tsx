@@ -20,14 +20,14 @@ function TaskNode({ data, selected }: any) {
 
     const status = data.status || 'pending';
 
-    const handleNodeClick = (e: React.MouseEvent) => {
-        e.stopPropagation(); // Try to prevent ReactFlow from eating it
+    const handlePointerDown = (e: React.PointerEvent) => {
+        // Use PointerDownCapture to guarantee click detection before React Flow's deep pointer management intercepts and cancels physical click chains
         const event = new CustomEvent('force-node-click', { detail: data });
-        window.dispatchEvent(event);
+        document.dispatchEvent(event);
     };
 
     return (
-        <div className="relative group cursor-pointer z-50" onClick={handleNodeClick}>
+        <div className="relative group z-50" onPointerDownCapture={handlePointerDown}>
             {/* Details tooltip on Hover */}
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg shadow-xl opacity-0 translate-y-2 pointer-events-none peer-hover:opacity-100 peer-hover:translate-y-0 transition-all z-50 duration-200">
                 <div className="font-semibold mb-1 text-sm">{data.title}</div>

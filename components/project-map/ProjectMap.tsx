@@ -24,7 +24,7 @@ export default function ProjectMap({ projectId, initialTasks, onNodeClick }: { p
     const [edges, setEdges] = useState<Edge[]>([]);
     const [selectedTask, setSelectedTask] = useState<any | null>(null);
 
-    // Initialize nodes and edges from database tasks
+    // Initialize nodes and edges from database tasks AFTER mount to avoid hydration mismatch from random Math.random() positioning
     useEffect(() => {
         const newNodes: Node[] = initialTasks.map((task: any) => ({
             id: task.id,

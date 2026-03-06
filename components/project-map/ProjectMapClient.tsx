@@ -12,14 +12,25 @@ export default function ProjectMapClient({ projectId, initialTasks }: { projectI
     const blockedTasksCount = initialTasks.filter(t => t.status === 'blocked').length;
     const activeTasksCount = initialTasks.filter(t => t.status !== 'completed').length;
 
-    // Listen for manual clicks from TaskNode that bypass ReactFlow's wrapper
+    const [isMounted, setIsMounted] = useState(false);
+
     useEffect(() => {
-        const handleForceClick = (e: CustomEvent) => {
-            setSelectedTask(e.detail);
-        };
-        window.addEventListener('force-node-click' as any, handleForceClick);
-        return () => window.removeEventListener('force-node-click' as any, handleForceClick);
+        setIsMounted(true);
     }, []);
+
+    // Listen for manual interactions from TaskNode that bypass ReactFlow's strict click thresholds
+    useEffect(() => {
+        const handleForceClick = (e: Event) => {
+            const customEvent = e as CustomEvent;
+            setSelectedTask(customEvent.detail);
+        };
+        document.addEventListener('force-node-click', handleForceClick);
+        return () => document.removeEventListener('force-node-click', handleForceClick);
+    }, []);
+
+    if (!isMounted) {
+        return <div className="flex h-full w-full bg-slate-50 dark:bg-slate-950 items-center justify-center">Loading Map...</div>;
+    }
 
     return (
         <div className="flex flex-col h-full w-full bg-white dark:bg-slate-950">
